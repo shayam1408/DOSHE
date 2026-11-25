@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark" />
+  <title>DOSHE // Intent-Based Focus &amp; FocusTube OS</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <canvas id="ambient-canvas" class="ambient-canvas" aria-hidden="true"></canvas>
+  <div class="hud-shell">
+    <!-- Persistent Top HUD Bar -->
+    <header class="hud-topbar">
+      <div class="brand-cluster">
+        <span class="status-beacon" id="db-status-dot" title="SQLite Engine Online"></span>
+        <span class="brand-wordmark">DOSHE</span>
+        <span class="brand-tag">OBS-OS v2.7</span>
+      </div>
+
+      <nav class="hud-nav" aria-label="Primary Workspace Views">
+        <button class="nav-tab is-active" data-view="focus" id="nav-focus">
+          <span class="nav-index">01</span>
+          <span>Focus Gate</span>
+        </button>
+        <button class="nav-tab" data-view="focustube" id="nav-focustube">
+          <span class="nav-index">02</span>
+          <span>FocusTube</span>
+        </button>
+        <button class="nav-tab" data-view="telemetry" id="nav-telemetry">
+          <span class="nav-index">03</span>
+          <span>Telemetry</span>
+        </button>
+      </nav>
+
+      <div class="topbar-actions">
+        <button class="urge-trigger" id="open-urge-shield" type="button" title="Trigger 15s Anti-Doomscroll Cooldown">
+          <span class="urge-dot"></span>
+          <span>Urge Shield</span>
+        </button>
+        <button class="spotify-trigger" id="open-spotify-drawer" type="button" title="Toggle Collapsible Spotify Focus Drawer">
+          <span>Spotify</span>
+        </button>
+        <div class="audio-cluster" role="group" aria-label="Ambient Sound Engine">
+          <button type="button" class="audio-mute-btn" id="topbar-audio-mute" title="Toggle Mute / Last Soundscape">Mute</button>
+          <select id="topbar-audio-select" class="audio-select-compact" aria-label="Focus Soundscape">
+            <option value="off">Mute (Silence)</option>
+            <option value="rain">Rain</option>
+            <option value="cafe">Café</option>
+            <option value="hall">Exam Hall</option>
+            <option value="gamma">40Hz Gamma</option>
+            <option value="brown">Brown</option>
+            <option value="pink">Pink</option>
+            <option value="drone">Drone</option>
+          </select>
+          <label class="topbar-vol-wrap" title="Soundscape Volume (0%–100%)">
+            <input type="range" id="topbar-audio-volume" class="audio-slider-compact" min="0" max="100" step="1" value="35" aria-label="Soundscape Volume" />
+            <span class="mono topbar-vol-label" id="topbar-audio-pct">35%</span>
+          </label>
+        </div>
+        <button class="cmd-trigger" id="open-cmd-palette" title="Open Command Palette (Ctrl+K)">
+          <span>Commands</span>
+          <kbd>Ctrl+K</kbd>
+        </button>
+      </div>
+    </header>
+
+    <!-- Collapsible Spotify Focus Drawer -->
+    <section class="spotify-drawer is-hidden" id="spotify-drawer" aria-label="Spotify Focus Audio Drawer">
+      <div class="spotify-drawer-inner hud-card">
+        <div class="spotify-drawer-top">
+          <div class="spotify-drawer-title">
+            <span class="mono-pill accent">AUDIO // SPOTIFY FOCUS</span>
+            <span class="mono note-time-meta">Compact official embed — persists across tabs</span>
+          </div>
+          <div class="spotify-presets">
+            <button type="button" class="chip-btn" data-spotify-preset="playlist/37i9dQZF1DWZeKCadgRdKQ">Deep Focus</button>
+            <button type="button" class="chip-btn" data-spotify-preset="playlist/37i9dQZF1DWWQRwui0ExPn">Lo-Fi Beats</button>
+            <button type="button" class="chip-btn" data-spotify-preset="playlist/37i9dQZF1DX9sIqqvKsjG8">Instrumental Study</button>
+            <button type="button" class="btn-ghost btn-sm" id="close-spotify-drawer">Hide</button>
+          </div>
+        </div>
+        <form id="spotify-form" class="spotify-form">
+          <input
+            id="spotify-url-input"
+            type="text"
+            class="hud-input"
+            placeholder="Paste any Spotify playlist, album, or track URL (https://open.spotify.com/playlist/...)"
+            autocomplete="off"
+          />
+          <button type="submit" class="btn-primary btn-sm">Load Embed</button>
+        </form>
+        <div class="spotify-frame-wrap" id="spotify-frame-wrap">
+          <iframe
+            id="spotify-iframe"
+            class="spotify-iframe is-hidden"
+            height="152"
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            loading="lazy"
+            title="Spotify Focus Embed"
+          ></iframe>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Viewport -->
+    <main class="hud-main">
+      <!-- VIEW 1: INTENT BARRIER -> 2M MICRO-COMMITMENT -> DEEP SPRINT -> REFLECTION -->
+      <section class="view-panel is-active" id="view-focus" aria-labelledby="nav-focus">
+        <div class="focus-workspace-grid">
+          <div class="focus-stage-container">
+          <!-- Stage 1: Intent Barrier Gate -->
+          <div class="hud-card gate-card is-visible" id="stage-gate">
+            <div class="stage-eyebrow">
+              <span class="mono-pill">GATE // 01</span>
+              <span>ANTI-DOOMSCROLL INTENTION BARRIER</span>
+            </div>
+            <h1 class="gate-title">Define a singular cognitive objective.</h1>
+            <p class="gate-subtitle">
+              Unstructured feeds thrive on ambiguity. State exactly what you will build, read, or solve before the clock starts.
+            </p>
+
+            <form id="gate-form" class="gate-form" novalidate>
+              <label class="field-label" for="intention-input">Locked Intention</label>
+              <input
+                id="intention-input"
+                type="text"
+                class="hud-input gate-input"
+                maxlength="280"
+                placeholder="e.g., Implement binary search tree balancing and verify edge cases"
+                autocomplete="off"
+                required
+              />
+
+              <div class="duration-row">
+                <span class="field-label">Deep Sprint Horizon</span>
+                <div class="duration-pills" role="radiogroup" aria-label="Target Sprint Duration">
+                  <button type="button" class="duration-pill" data-minutes="15">15m</button>
+                  <button type="button" class="duration-pill is-selected" data-minutes="25">25m</button>
+                  <button type="button" class="duration-pill" data-minutes="45">45m</button>
+                </div>
+              </div>
+
+              <label class="friction-check">
+                <input type="checkbox" id="barrier-confirm" />
+                <span>Distraction feeds closed. Commit to a 2-minute frictionless entry gate first.</span>
+              </label>
+
+              <label class="friction-check strict-check">
+                <input type="checkbox" id="strict-mode-toggle" />
+                <span><strong>Strict Focus Lock</strong> — Enters Fullscreen and adds <code>+2:00</code> overtime penalty + <code>BREACH</code> chime if you leave the tab or exit fullscreen.</span>
+              </label>
+
+              <div class="duration-row">
+                <span class="field-label">Ambient Canvas</span>
+                <div class="duration-pills" role="group" aria-label="Ambient Focus Canvas Theme">
+                  <button type="button" class="chip-btn is-active" data-canvas-theme="off">Off</button>
+                  <button type="button" class="chip-btn" data-canvas-theme="aurora">Breathing Aurora</button>
+                  <button type="button" class="chip-btn" data-canvas-theme="rain">Rain Matrix</button>
+                  <button type="button" class="chip-btn" data-canvas-theme="orbit">Deep Orbit</button>
+                  <button type="button" class="chip-btn" data-canvas-theme="ribbon">Neural Ribbon</button>
+                </div>
+              </div>
+
+              <div class="gate-actions">
+                <button type="submit" class="btn-primary" id="start-gate-btn">
+                  Lock Intention &amp; Enter 2m Gate
+                </button>
+                <span class="hint-text mono" id="gate-error"></span>
+              </div>
+            </form>
+          </div>
+
+          <!-- Stage 2: 2-Minute Micro-Commitment -->
+          <div class="hud-card timer-card" id="stage-micro">
+            <div class="stage-eyebrow">
+              <span class="mono-pill accent">GATE // 02</span>
+              <span id="micro-strict-badge" class="mono-pill amber is-hidden">STRICT LOCK</span>
+              <span>2-MINUTE MICRO-COMMITMENT</span>
+            </div>
+
+            <div class="locked-intention-banner">
+              <span class="banner-label">OBJECTIVE</span>
+              <span class="banner-text" id="micro-intention-text">—</span>
+            </div>
+
+            <div class="breach-banner is-hidden" id="micro-breach-banner" role="status"></div>
+
+            <div class="halo-wrapper">
+              <svg class="progress-halo" viewBox="0 0 220 220" aria-hidden="true">
+                <circle class="halo-track" cx="110" cy="110" r="96"></circle>
+                <circle class="halo-progress" id="micro-halo-circle" cx="110" cy="110" r="96"></circle>
+              </svg>
+              <div class="halo-readout">
+                <div class="readout-time mono" id="micro-time-display">02:00</div>
+                <div class="readout-meta" id="micro-elapsed-meta">ENTRY THRESHOLD</div>
+              </div>
+            </div>
+
+            <p class="micro-guidance">
+              Cross the 120-second activation barrier. Once momentum locks in, escalate immediately or auto-advance into your <strong id="micro-target-label">25m</strong> Deep Sprint.
+            </p>
+
+            <div class="timer-controls">
+              <button type="button" class="btn-primary" id="escalate-sprint-btn">Escalate to Deep Sprint</button>
+              <button type="button" class="btn-ghost" id="micro-pause-btn">Pause</button>
+              <button type="button" class="btn-danger-ghost" id="micro-abort-btn">Abort Gate</button>
+            </div>
+          </div>
+
+          <!-- Stage 3: Deep Focus Sprint Timer -->
+          <div class="hud-card timer-card" id="stage-sprint">
+            <div class="stage-eyebrow">
+              <span class="mono-pill accent">SPRINT // 03</span>
+              <span id="sprint-strict-badge" class="mono-pill amber is-hidden">STRICT LOCK</span>
+              <span>DEEP FOCUS ENGINE</span>
+            </div>
+
+            <div class="locked-intention-banner">
+              <span class="banner-label">LOCKED INTENT</span>
+              <span class="banner-text" id="sprint-intention-text">—</span>
+            </div>
+
+            <div class="breach-banner is-hidden" id="sprint-breach-banner" role="status"></div>
+
+            <div class="halo-wrapper">
+              <svg class="progress-halo" viewBox="0 0 220 220" aria-hidden="true">
+                <circle class="halo-track" cx="110" cy="110" r="96"></circle>
+                <circle class="halo-progress" id="sprint-halo-circle" cx="110" cy="110" r="96"></circle>
+              </svg>
+              <div class="halo-readout">
+                <div class="readout-time mono" id="sprint-time-display">25:00</div>
+                <div class="readout-meta" id="sprint-elapsed-meta">0.0m ELAPSED</div>
+              </div>
+            </div>
+
+            <!-- In-Sprint Ambient Acoustic Shield -->
+            <div class="acoustic-bar">
+              <span class="acoustic-label">ACOUSTIC SHIELD</span>
+              <div class="acoustic-toggles">
+                <button type="button" class="chip-btn is-active" data-audio="off">Silence</button>
+                <button type="button" class="chip-btn" data-audio="brown">Brown</button>
+                <button type="button" class="chip-btn" data-audio="pink">Pink</button>
+                <button type="button" class="chip-btn" data-audio="rain">Rain</button>
+                <button type="button" class="chip-btn" data-audio="cafe">Café</button>
+                <button type="button" class="chip-btn" data-audio="hall">Exam Hall</button>
+                <button type="button" class="chip-btn" data-audio="gamma">40Hz Gamma</button>
+                <button type="button" class="chip-btn" data-audio="drone">Drone</button>
+              </div>
+              <label class="gain-control" title="Noise Volume">
+                <span class="mono">VOL</span>
+                <input type="range" id="noise-volume" min="0" max="100" step="1" value="35" />
+              </label>
+            </div>
+
+            <div class="acoustic-bar canvas-bar">
+              <span class="acoustic-label">AMBIENT CANVAS</span>
+              <div class="acoustic-toggles">
+                <button type="button" class="chip-btn is-active" data-canvas-theme="off">Off</button>
+                <button type="button" class="chip-btn" data-canvas-theme="aurora">Aurora</button>
+                <button type="button" class="chip-btn" data-canvas-theme="rain">Rain</button>
+                <button type="button" class="chip-btn" data-canvas-theme="orbit">Orbit</button>
+                <button type="button" class="chip-btn" data-canvas-theme="ribbon">Neural Ribbon</button>
+              </div>
+            </div>
+
+            <div class="timer-controls">
+              <button type="button" class="btn-ghost" id="sprint-pause-btn">Pause</button>
+              <button type="button" class="btn-primary" id="sprint-complete-btn">Complete Sprint</button>
+              <button type="button" class="btn-danger-ghost" id="sprint-abort-btn">Abort</button>
+            </div>
+
+            <div class="early-confirm-bar is-hidden" id="early-complete-confirm" role="alert">
+              <div class="early-confirm-text" id="early-complete-msg">
+                Less than 80% of target sprint elapsed. Log as an honest early exit to avoid inflating Completion Rate?
+              </div>
+              <div class="early-confirm-actions">
+                <button type="button" class="btn-danger-ghost btn-sm" id="early-log-abandoned-btn">Log Early Exit</button>
+                <button type="button" class="btn-ghost btn-sm" id="early-mark-completed-btn">Complete Anyway</button>
+                <button type="button" class="btn-primary btn-sm" id="early-resume-btn">Keep Focusing</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stage 4: Post-Session Reflection Log -->
+          <div class="hud-card reflection-card" id="stage-reflection">
+            <div class="stage-eyebrow">
+              <span class="mono-pill" id="reflection-status-pill">COMPLETED</span>
+              <span>POST-SESSION COGNITIVE LOG</span>
+            </div>
+
+            <h2 class="reflection-title" id="reflection-intention-title">—</h2>
+
+            <div class="reflection-stats">
+              <div class="stat-mini">
+                <span class="stat-label">Target</span>
+                <span class="stat-val mono" id="reflection-target">25m</span>
+              </div>
+              <div class="stat-mini">
+                <span class="stat-label">Actual Deep Focus</span>
+                <span class="stat-val mono" id="reflection-actual">25.0m</span>
+              </div>
+              <div class="stat-mini">
+                <span class="stat-label">Outcome</span>
+                <span class="stat-val mono" id="reflection-outcome">COMPLETED</span>
+              </div>
+            </div>
+
+            <form id="reflection-form" class="reflection-form">
+              <label class="field-label" for="reflection-input">Session Reflection (Optional)</label>
+              <textarea
+                id="reflection-input"
+                class="hud-textarea"
+                rows="4"
+                maxlength="2000"
+                placeholder="What concrete artifact did you finish? What pulled at your attention?"
+              ></textarea>
+              <div class="gate-actions">
+                <button type="submit" class="btn-primary">Save Reflection to Vault</button>
+                <button type="button" class="btn-ghost" id="reflection-skip-btn">New Focus Gate</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+          <!-- Right Column: Persistent To-Do Backlog & Daily Top-3 -->
+          <aside class="hud-card task-backlog-card" id="task-backlog-card" aria-label="Task Backlog and Daily Top 3">
+            <div class="pane-header">
+              <div>
+                <span class="mono-pill accent">TASKS // DAILY TOP-3</span>
+                <h2 class="pane-title">Intent Backlog</h2>
+              </div>
+              <span class="mono-pill" id="top3-counter-pill">0 / 3 TOP-3</span>
+            </div>
+
+            <form id="task-add-form" class="task-add-form">
+              <input
+                id="task-title-input"
+                type="text"
+                class="hud-input"
+                maxlength="200"
+                placeholder="Add task (e.g., Implement B+ Tree split)"
+                autocomplete="off"
+                required
+              />
+              <div class="task-add-row">
+                <select id="task-tag-select" class="hud-input task-select" aria-label="Task Tag">
+                  <option value="Study">Study</option>
+                  <option value="Build">Build</option>
+                  <option value="Personal">Personal</option>
+                </select>
+                <label class="task-est-wrap" title="Estimated Sprints">
+                  <span class="mono">SPRINTS</span>
+                  <input id="task-est-input" type="number" class="hud-input task-est-input" min="1" max="20" value="1" />
+                </label>
+                <button type="submit" class="btn-primary btn-sm">Add</button>
+              </div>
+            </form>
+
+            <div class="task-filter-bar" role="group" aria-label="Filter Tasks by Tag">
+              <button type="button" class="chip-btn is-active" data-task-tag-filter="all">All</button>
+              <button type="button" class="chip-btn" data-task-tag-filter="Study">Study</button>
+              <button type="button" class="chip-btn" data-task-tag-filter="Build">Build</button>
+              <button type="button" class="chip-btn" data-task-tag-filter="Personal">Personal</button>
+            </div>
+
+            <div class="task-section-label mono">TODAY'S TOP 3</div>
+            <div class="task-list" id="task-top3-list"></div>
+
+            <div class="task-section-label mono">BACKLOG</div>
+            <div class="task-list" id="task-backlog-list"></div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- VIEW 2: FOCUSTUBE STUDY WORKSPACE -->
+      <section class="view-panel" id="view-focustube" aria-labelledby="nav-focustube">
+        <div class="focustube-loader hud-card">
+          <form id="yt-load-form" class="yt-load-form">
+            <div class="yt-field-group grow">
+              <label class="field-label" for="yt-url-input">YouTube URL or Video ID</label>
+              <input
+                id="yt-url-input"
+                type="text"
+                class="hud-input"
+                placeholder="Paste https://youtube.com/watch?v=... or youtu.be/... or 11-char ID"
+                autocomplete="off"
+              />
+            </div>
+            <div class="yt-field-group title-group">
+              <label class="field-label" for="yt-title-input">Study Stream Title</label>
+              <input
+                id="yt-title-input"
+                type="text"
+                class="hud-input"
+                maxlength="200"
+                placeholder="e.g., MIT 6.824 Distributed Systems Lecture 1"
+                autocomplete="off"
+              />
+            </div>
+            <div class="yt-load-btn-wrap">
+              <button type="submit" class="btn-primary">Load Clean Stream</button>
+              <button type="button" class="btn-ghost" id="yt-queue-add-btn" title="Add stream to persistent Study Queue">+ Queue</button>
+            </div>
+          </form>
+          <div class="recent-streams-bar" id="recent-streams-bar"></div>
+
+          <!-- In-App Quick-Topic & Curated CS/AI/VTU Lecture Launcher -->
+          <div class="topic-launcher">
+            <div class="topic-launcher-head">
+              <span class="mono-pill">DISCOVER // ZERO-FEED LAUNCHER</span>
+              <div class="topic-search-wrap">
+                <input
+                  id="topic-search-input"
+                  type="text"
+                  class="hud-input topic-search-input"
+                  placeholder="Search CS, AI, VTU topics, or paste URL/ID..."
+                  autocomplete="off"
+                />
+                <button type="button" class="btn-ghost btn-sm" id="topic-search-btn">Find</button>
+              </div>
+            </div>
+            <div class="topic-results" id="topic-results"></div>
+          </div>
+        </div>
+
+        <div class="focustube-grid">
+          <!-- Left: Distraction-Free Player + Study Clock -->
+          <div class="hud-card player-pane">
+            <div class="pane-header">
+              <div>
+                <span class="mono-pill">FOCUSTUBE // NO-COOKIE</span>
+                <h2 class="pane-title" id="active-video-title">No Stream Loaded</h2>
+                <div class="mono note-time-meta" id="active-video-author"></div>
+              </div>
+              <span class="mono muted-id" id="active-video-id">IDLE</span>
+            </div>
+
+            <div class="player-frame-wrap" id="player-frame-wrap">
+              <div class="player-empty-state" id="player-empty-state">
+                <div class="empty-sigil mono">[ NO ALGORITHM FEED ]</div>
+                <p>Paste any lecture, talk, or tutorial URL above. Recommendations, autoplay feeds, and tracking cookies are stripped via <code>youtube-nocookie.com</code>.</p>
+                <button type="button" class="btn-ghost" id="load-demo-stream-btn">Load Sample Lecture Stream</button>
+              </div>
+              <iframe
+                id="yt-iframe"
+                class="yt-iframe is-hidden"
+                title="FocusTube Distraction-Free Video Player"
+                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+              ></iframe>
+            </div>
+
+            <!-- Study Clock & Timestamp Scrubber -->
+            <div class="study-clock-bar">
+              <div class="clock-readout-group">
+                <span class="clock-label">STUDY CLOCK</span>
+                <span class="clock-value mono" id="study-clock-display">00:00</span>
+              </div>
+              <div class="clock-controls">
+                <button type="button" class="btn-ghost btn-sm" id="clock-toggle-btn">Start Clock</button>
+                <button type="button" class="btn-ghost btn-sm mono" id="clock-back-btn">-15s</button>
+                <button type="button" class="btn-ghost btn-sm mono" id="clock-fwd-btn">+15s</button>
+                <input
+                  type="text"
+                  id="clock-manual-input"
+                  class="hud-input clock-manual-input mono"
+                  placeholder="MM:SS"
+                  title="Jump timestamp (e.g. 12:30)"
+                />
+                <button type="button" class="btn-ghost btn-sm" id="clock-set-btn">Set</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Timestamped Markdown Note-Taker -->
+          <div class="hud-card notes-pane">
+            <div class="pane-header">
+              <div>
+                <span class="mono-pill accent">TIMESTAMPED MARKDOWN</span>
+                <h2 class="pane-title">Active Study Notes</h2>
+              </div>
+              <div class="pane-actions">
+                <button type="button" class="btn-ghost btn-sm" id="export-video-notes-btn">Export .md</button>
+              </div>
+            </div>
+
+            <form id="note-form" class="note-form">
+              <div class="note-meta-bar">
+                <span class="ts-badge mono" id="note-active-ts">@ 00:00</span>
+                <label class="lock-ts-toggle">
+                  <input type="checkbox" id="lock-ts-checkbox" checked />
+                  <span>Auto-lock timestamp while typing</span>
+                </label>
+              </div>
+              <textarea
+                id="note-input"
+                class="hud-textarea note-textarea"
+                rows="3"
+                maxlength="4000"
+                placeholder="Capture concept in Markdown (e.g., `Raft Consensus`: leader election uses randomized timeouts). Press Ctrl+Enter to save."
+              ></textarea>
+              <div class="note-form-footer">
+                <span class="hint-text mono" id="note-error"></span>
+                <button type="submit" class="btn-primary btn-sm" id="save-note-btn">Save Note</button>
+              </div>
+            </form>
+
+            <div class="notes-timeline" id="notes-timeline">
+              <div class="empty-notes-state">Load a video stream or capture notes to build your timestamped timeline.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Persistent Study Queue -->
+        <div class="hud-card queue-panel">
+          <div class="pane-header">
+            <div>
+              <span class="mono-pill">QUEUE // PERSISTENT</span>
+              <h2 class="pane-title">Study Stream Queue</h2>
+            </div>
+            <div class="pane-actions">
+              <button type="button" class="btn-primary btn-sm" id="queue-next-btn">Load Next Unfinished</button>
+            </div>
+          </div>
+          <div class="study-queue-list" id="study-queue-list">
+            <div class="empty-notes-state">Queue is empty. Paste a YouTube URL above and click + Queue to line up lectures.</div>
+          </div>
+        </div>
+
+        <!-- Bottom: AI Study Coach -->
+        <div class="hud-card coach-panel">
+          <div class="pane-header coach-header">
+            <div>
+              <span class="mono-pill">COACH // v1 CONTRACT</span>
+              <h2 class="pane-title">AI Study Coach — Synthesis &amp; Active Recall</h2>
+            </div>
+            <div class="coach-controls">
+              <span class="mono coach-latency" id="coach-meta-badge">OFFLINE-READY (&lt;120ms)</span>
+              <button type="button" class="btn-ghost btn-sm" data-coach-mode="summary">Summary</button>
+              <button type="button" class="btn-ghost btn-sm" data-coach-mode="quiz">Quiz</button>
+              <button type="button" class="btn-primary btn-sm" data-coach-mode="study_pack">Generate Study Pack</button>
+            </div>
+          </div>
+
+          <div class="coach-output" id="coach-output">
+            <div class="coach-empty">
+              Capture one or more timestamped notes above, then click <strong>Generate Study Pack</strong> to synthesize takeaways, a clickable concept map, and an active-recall quiz.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 3: TELEMETRY & SESSION HISTORY -->
+      <section class="view-panel" id="view-telemetry" aria-labelledby="nav-telemetry">
+        <!-- Bento Metrics Grid -->
+        <div class="bento-grid">
+          <div class="hud-card bento-card">
+            <span class="bento-label">TOTAL DEEP FOCUS</span>
+            <div class="bento-value mono" id="metric-total-minutes">0.0m</div>
+            <div class="bento-sub mono" id="metric-total-hours">0.0 hrs logged</div>
+          </div>
+
+          <div class="hud-card bento-card">
+            <span class="bento-label">INTENT COMPLETION RATE</span>
+            <div class="bento-value mono" id="metric-completion-rate">0%</div>
+            <div class="bento-bar-track">
+              <div class="bento-bar-fill" id="metric-completion-bar" style="width: 0%"></div>
+            </div>
+            <div class="bento-sub mono" id="metric-completion-ratio">0 completed / 0 abandoned</div>
+          </div>
+
+          <div class="hud-card bento-card">
+            <span class="bento-label">FOCUS INTEGRITY</span>
+            <div class="bento-value mono" id="metric-focus-integrity">100%</div>
+            <div class="bento-bar-track">
+              <div class="bento-bar-fill" id="metric-integrity-bar" style="width: 100%"></div>
+            </div>
+            <div class="bento-sub mono" id="metric-integrity-sub">0 off-tab switches logged</div>
+          </div>
+
+          <div class="hud-card bento-card">
+            <span class="bento-label">URGES RESISTED</span>
+            <div class="bento-value mono" id="metric-urges-resisted">0</div>
+            <div class="bento-sub mono" id="metric-urges-sub">0 impulse shields triggered</div>
+          </div>
+
+          <div class="hud-card bento-card">
+            <span class="bento-label">VAULT ARTIFACTS</span>
+            <div class="bento-value mono" id="metric-total-notes">0</div>
+            <div class="bento-sub mono" id="metric-total-sessions">0 focus sessions · 0 streams</div>
+          </div>
+
+          <div class="hud-card bento-card bento-wide">
+            <div class="bento-cadence-header">
+              <span class="bento-label">7-DAY FOCUS CADENCE</span>
+              <span class="bento-sub mono">MINUTES / DAY</span>
+            </div>
+            <div class="cadence-chart" id="cadence-chart"></div>
+          </div>
+        </div>
+
+        <!-- History & Notes Split -->
+        <div class="telemetry-split">
+          <div class="hud-card history-card">
+            <div class="pane-header">
+              <div>
+                <span class="mono-pill">VAULT // SESSIONS</span>
+                <h2 class="pane-title">Recent Focus Sessions</h2>
+              </div>
+              <div class="filter-pills" role="group" aria-label="Filter Sessions">
+                <button type="button" class="chip-btn is-active" data-session-filter="all">All</button>
+                <button type="button" class="chip-btn" data-session-filter="completed">Completed</button>
+                <button type="button" class="chip-btn" data-session-filter="abandoned">Abandoned</button>
+              </div>
+            </div>
+            <div class="sessions-list" id="sessions-list"></div>
+          </div>
+
+          <div class="hud-card export-notes-card">
+            <div class="pane-header">
+              <div>
+                <span class="mono-pill accent">VAULT // NOTES</span>
+                <h2 class="pane-title">Exportable Study Notes</h2>
+              </div>
+              <button type="button" class="btn-ghost btn-sm" id="export-all-notes-btn">Download All (.md)</button>
+            </div>
+            <div class="vault-notes-list" id="vault-notes-list"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Anti-Doomscroll Urge Shield Modal -->
+  <div class="cmd-backdrop is-hidden" id="urge-backdrop" role="dialog" aria-modal="true" aria-label="Anti-Doomscroll Urge Shield">
+    <div class="urge-modal hud-card">
+      <div class="stage-eyebrow">
+        <span class="mono-pill amber">URGE SHIELD // 15S COOLDOWN</span>
+        <button type="button" class="btn-ghost btn-sm" id="urge-close-btn">ESC</button>
+      </div>
+
+      <h2 class="urge-title">Interrupt the autopilot loop.</h2>
+      <p class="urge-subtitle">
+        Wait 15 seconds before opening a feed. Notice what triggered the impulse—boredom, fatigue, or task friction.
+      </p>
+
+      <div class="urge-source-chips" role="group" aria-label="Impulse Trigger Source">
+        <button type="button" class="chip-btn is-active" data-urge-source="Instagram / Reels">Reels / Short Video</button>
+        <button type="button" class="chip-btn" data-urge-source="X / Social Feed">Social Feed</button>
+        <button type="button" class="chip-btn" data-urge-source="YouTube Home">YouTube Home</button>
+        <button type="button" class="chip-btn" data-urge-source="News / HN">News / HN</button>
+      </div>
+
+      <input
+        id="urge-source-input"
+        type="text"
+        class="hud-input"
+        maxlength="120"
+        value="Instagram / Reels"
+        placeholder="Trigger app or impulse source"
+      />
+
+      <!-- 3-Mode Mind-Diversion Switcher -->
+      <div class="urge-diversion-tabs" role="tablist" aria-label="Mind Diversion Mode">
+        <button type="button" class="chip-btn is-active" data-urge-mode="breath">4-7-8 Breathing Orb</button>
+        <button type="button" class="chip-btn" data-urge-mode="stroop">15s Stroop Snap</button>
+        <button type="button" class="chip-btn" data-urge-mode="reset">20-20-20 Posture</button>
+      </div>
+
+      <div class="urge-diversion-stage">
+        <div class="urge-cooldown-bar">
+          <span class="mono urge-timer-pill" id="urge-timer-display">15s</span>
+          <span class="readout-meta" id="urge-state-label">COOLING DOWN</span>
+        </div>
+
+        <!-- Mode A: 4-7-8 Guided Breathing Orb -->
+        <div class="urge-mode-panel" id="urge-panel-breath">
+          <div class="breath-orb-stage">
+            <svg class="urge-halo" viewBox="0 0 140 140" aria-hidden="true">
+              <circle class="halo-track" cx="70" cy="70" r="54"></circle>
+              <circle class="halo-progress urge-halo-ring" id="urge-halo-circle" cx="70" cy="70" r="54"></circle>
+              <circle class="breath-orb" id="breath-orb-circle" cx="70" cy="70" r="28"></circle>
+            </svg>
+          </div>
+          <div class="mono breath-phase-cue" id="breath-phase-cue">INHALE SLOWLY · 4s</div>
+        </div>
+
+        <!-- Mode B: 15s Stroop Focus Snap -->
+        <div class="urge-mode-panel is-hidden" id="urge-panel-stroop">
+          <div class="stroop-header mono">
+            <span>TAP THE INK COLOR (IGNORE THE WORD)</span>
+            <span id="stroop-score-label">STREAK: 0 · HITS: 0</span>
+          </div>
+          <div class="stroop-word" id="stroop-word">CYAN</div>
+          <div class="stroop-options" id="stroop-options"></div>
+        </div>
+
+        <!-- Mode C: 20-20-20 Eye & Posture Reset -->
+        <div class="urge-mode-panel is-hidden" id="urge-panel-reset">
+          <div class="reset-steps" id="reset-steps">
+            <div class="reset-step is-active" data-reset-step="0">
+              <span class="mono-pill accent">01</span>
+              <span>Look 20 feet away from your screen to relax eye ciliary muscles.</span>
+            </div>
+            <div class="reset-step" data-reset-step="1">
+              <span class="mono-pill">02</span>
+              <span>Drop both shoulders, unclench your jaw, and lengthen your spine.</span>
+            </div>
+            <div class="reset-step" data-reset-step="2">
+              <span class="mono-pill">03</span>
+              <span>Take one long nasal exhale and choose your next intentional move.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="urge-pivot-box">
+        <label class="field-label" for="urge-pivot-intention">Optional Pivot Objective (for 2m Micro-Commitment)</label>
+        <input
+          id="urge-pivot-intention"
+          type="text"
+          class="hud-input"
+          maxlength="280"
+          placeholder="e.g., Read 1 page or write next 5 lines of code"
+        />
+      </div>
+
+      <div class="urge-actions">
+        <button type="button" class="btn-primary" id="urge-pivot-btn" disabled>Pivot to 2m Micro-Gate (15s)</button>
+        <button type="button" class="btn-ghost" id="urge-resist-btn" disabled>Urge Resisted — Return Clean</button>
+        <button type="button" class="btn-danger-ghost" id="urge-yield-btn">Log Yield &amp; Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ctrl+K Command Palette Modal -->
+  <div class="cmd-backdrop is-hidden" id="cmd-backdrop" role="dialog" aria-modal="true" aria-label="DOSHE Command Palette">
+    <div class="cmd-modal">
+      <div class="cmd-input-row">
+        <span class="cmd-prompt mono">&gt;_</span>
+        <input
+          id="cmd-search-input"
+          type="text"
+          class="cmd-input"
+          placeholder="Type a command, view, or saved stream..."
+          autocomplete="off"
+        />
+        <kbd class="cmd-esc">ESC</kbd>
+      </div>
+      <div class="cmd-results" id="cmd-results"></div>
+    </div>
+  </div>
+
+  <!-- Minimal HUD Toast -->
+  <div class="hud-toast is-hidden" id="hud-toast" role="status" aria-live="polite"></div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
